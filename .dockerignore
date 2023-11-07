@@ -1,0 +1,4 @@
+node_modules
+data
+prisma/migrations
+.env.local
