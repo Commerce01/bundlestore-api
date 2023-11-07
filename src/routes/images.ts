@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest } from "fastify";
 import fs from "fs";
 
-const path = __dirname.split("\\").slice(0, -2).join("\\") + "/public";
+const path = __dirname.split("\\").slice(0, -2).join("\\") + "/public/images";
 
 export default async function ImagesRoute(fastify: FastifyInstance) {
   fastify.get("/images", async (request, reply) => {
