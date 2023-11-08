@@ -1,7 +1,25 @@
+import { Product } from "@prisma/client";
 import { FastifyInstance, FastifyRequest } from "fastify";
 
 export default async function ProductRoute(fastify: FastifyInstance) {
-  fastify.get("/products", async (request, reply) => {
+  fastify.get("/products", async (request : FastifyRequest<{Querystring:{slug:string}}>, reply) => {
+    const {slug} = request.query;
+    if (slug) {
+       const product = await fastify.db.product.findFirstOrThrow({
+        where:{
+          slug,
+        },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+    return reply.status(200).send(product);
+    }
     const product = await fastify.db.product.findMany({
       include: {
         category: {
@@ -12,7 +30,7 @@ export default async function ProductRoute(fastify: FastifyInstance) {
         },
       },
     });
-    reply.status(200).send(product);
+    return reply.status(200).send(product);
   });
 
   fastify.get(
@@ -28,6 +46,7 @@ export default async function ProductRoute(fastify: FastifyInstance) {
             select: {
               id: true,
               name: true,
+              slug:true
             },
           },
         },
@@ -41,24 +60,19 @@ export default async function ProductRoute(fastify: FastifyInstance) {
     async (
       request: FastifyRequest<{
         Body: {
-          name: string;
-          price: number;
-          description: string;
-          image: string;
-          categories_id?: string;
+          prooduct_type: Product;
+          categories_id?:string;
+
         };
       }>,
       reply
     ) => {
-      const { name, price, description, categories_id, image } = request.body;
+      const { prooduct_type, categories_id} = request.body;
       try {
         if (categories_id) {
           const product = await fastify.db.product.create({
             data: {
-              name,
-              price,
-              description,
-              images: [image],
+             ...prooduct_type,
               category: {
                 connect: {
                   id: categories_id,
@@ -77,11 +91,7 @@ export default async function ProductRoute(fastify: FastifyInstance) {
           return reply.status(201).send(product);
         }
         const product = await fastify.db.product.create({
-          data: {
-            name,
-            price,
-            description,
-          },
+          data:prooduct_type,
         });
         return reply.status(201).send(product);
       } catch (error) {
@@ -95,26 +105,19 @@ export default async function ProductRoute(fastify: FastifyInstance) {
     async (
       request: FastifyRequest<{
         Body: {
-          name: string;
-          price: number;
-          description: string;
-          image: string;
+          prooduct_type: Product;
         };
         Params: { id: string };
       }>,
       reply
     ) => {
       const { id } = request.params;
-      const { name, price, description } = request.body;
+      const { prooduct_type } = request.body;
       const product = await fastify.db.product.update({
         where: {
           id,
         },
-        data: {
-          name,
-          price,
-          description,
-        },
+        data: prooduct_type,
       });
       reply.status(200).send(product);
     }

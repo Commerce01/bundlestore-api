@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest } from "fastify";
 
+
 export default async function CategorytRoute(fastify: FastifyInstance) {
   fastify.get("/categorys", async (request, reply) => {
     const category = await fastify.db.category.findMany({
@@ -16,20 +17,15 @@ export default async function CategorytRoute(fastify: FastifyInstance) {
   });
 
   fastify.get(
-    "/categorys/:id",
-    async (request: FastifyRequest<{ Params: { id: string } }>, reply) => {
-      const { id } = request.params;
-      const category = await fastify.db.category.findUniqueOrThrow({
+    "/categorys/:slug",
+    async (request: FastifyRequest<{ Params: { slug: string } }>, reply) => {
+      const { slug } = request.params;
+      const category = await fastify.db.category.findFirstOrThrow({
         where: {
-          id,
+          slug,
         },
         include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
+          product: true,
         },
       });
       reply.status(200).send(category);
@@ -42,14 +38,16 @@ export default async function CategorytRoute(fastify: FastifyInstance) {
       request: FastifyRequest<{
         Body: {
           name: string;
+          slug : string;
         };
       }>,
       reply
     ) => {
-      const { name } = request.body;
+      const { name, slug } = request.body;
       const category = await fastify.db.category.create({
         data: {
           name,
+          slug
         },
         include: {
           product: {

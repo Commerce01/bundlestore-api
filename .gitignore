@@ -135,4 +135,5 @@ prisma/dev.db
 prisma/dev.db-journal
 
 #image  uploads
-public/images/*jpg
+public/images/*.jpg
+public/images/*.png
