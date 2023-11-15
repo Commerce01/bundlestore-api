@@ -43,19 +43,11 @@ export default async function CategorytRoute(fastify: FastifyInstance) {
       }>,
       reply
     ) => {
-      const { name, slug } = request.body;
+      const { name} = request.body;
       const category = await fastify.db.category.create({
         data: {
           name,
-          slug
-        },
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
+          slug: name.toLowerCase().replace(/ /g,"-" )
         },
       });
       reply.status(201).send(category);
@@ -68,19 +60,21 @@ export default async function CategorytRoute(fastify: FastifyInstance) {
       request: FastifyRequest<{
         Body: {
           name: string;
+          slug: string;
         };
         Params: { id: string };
       }>,
       reply
     ) => {
       const { id } = request.params;
-      const { name } = request.body;
+      const { name , slug } = request.body;
       const category = await fastify.db.category.update({
         where: {
           id,
         },
         data: {
           name,
+          slug,
         },
       });
       reply.status(200).send(category);
